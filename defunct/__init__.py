@@ -32,10 +32,8 @@ def instance():
     app = QtWidgets.QApplication.instance()
     main_window = [x for x in app.allWidgets() if x.__class__ is QtWidgets.QMainWindow][0]
     try:
-        print('Found existing instance.')
         dock = [x for x in main_window.children() if x.__class__ is BinjaDockWidget][0]
     except:
-        print('New BingaDock instance.')
         dock = BinjaDockWidget()
 
     return dock
