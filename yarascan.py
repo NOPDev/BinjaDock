@@ -28,23 +28,26 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import Qt
 from binaryninja import *
-from defunct.widgets import BinjaDockWidget
+from defunct import BinjaWidget
+import defunct.widgets
+
 import yara
 
-class YaraDockWidget(BinjaDockWidget):
+class YaraWidget(BinjaWidget):
     """Binja Yara plugin
         Identifies yara signatures and displays them in a BinjaDockWidget.
     """
-    def __init__(self, *__args):
+    def __init__(self):
 
-        super(YaraDockWidget, self).__init__(*__args)
+        super(YaraWidget, self).__init__('Yara')
         self._rules = yara.compile(filepath=core.BNGetUserPluginDirectory() + '/yara/crypto_signatures.yar')
         self._table = QtWidgets.QTableWidget()
         self._table.setColumnCount(2)
         self._table.setHorizontalHeaderLabels(['Offset', 'Signature'])
         self._table.horizontalHeader().setStretchLastSection(True)
         self._table.verticalHeader().setVisible(False)
-        self.setWidget(self._table)
+        self.setLayout(QtWidgets.QStackedLayout())
+        self.layout().addWidget(self._table)
         self.setObjectName('BNPlugin_Yara')
         # self.addToolMenuAction("&Yara about", lambda: log_info('Yara scan!'))
 
@@ -52,7 +55,7 @@ class YaraDockWidget(BinjaDockWidget):
         finished = QtCore.pyqtSignal(list)
 
         def __init__(self, rules, file):
-            super(YaraDockWidget.YaraThread, self).__init__()
+            super(YaraWidget.YaraThread, self).__init__()
             self._rules = rules
             self._file = file
 
@@ -66,7 +69,7 @@ class YaraDockWidget(BinjaDockWidget):
         :return:
         """
         self._view = bv
-        self._thread = YaraDockWidget.YaraThread(self._rules, bv.file.filename)
+        self._thread = YaraWidget.YaraThread(self._rules, bv.file.filename)
         self._thread.finished.connect(self.scan_finished)
         self._thread.start()
 
@@ -87,6 +90,8 @@ class YaraDockWidget(BinjaDockWidget):
 
         self._table.cellDoubleClicked.connect(self.cell_action)
         self._thread.terminate()
+        self._core.show()
+        self._core.selectTab(self)
         self.show()
 
     def cell_action(self, row, column):
@@ -97,8 +102,9 @@ class YaraDockWidget(BinjaDockWidget):
         bv.navigate('Hex:' + bv.view_type, offset)
 
 
-# d = YaraDockWidget()
-# def scan(bv, offset):
-#     d.scan(bv)
-#
-# PluginCommand.register_for_address('Yara', 'Scan for yara signatures', scan)
+
+d = YaraWidget()
+def scan(bv, offset):
+    d.scan(bv)
+
+PluginCommand.register_for_address('Yara', 'Scan for yara signatures', scan)
