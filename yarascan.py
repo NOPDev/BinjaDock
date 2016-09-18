@@ -2,9 +2,13 @@
 Defunct <defunct<at>defunct.io> - NOP Developments LLC. 2016
 
     Yarascan - v0.1.0
-        Binja plugin that implements Yara signature scanning and navigation in a dockable widget.
+        Yarascan is a PoC UI plugin to demonstrate the usage of BinjaDock.
 
-    Useful crypto / malware / anti-vm signatures used (https://github.com/Yara-Rules/rules.git)
+    Signatures for crypto, malware, antivm and so on used in this PoC and more are located at:
+    (https://github.com/Yara-Rules/rules.git)
+
+    .. note::
+        In this example you will need to define SIG_FILE with the appropriate yara rules file.
 
 MIT License
 
@@ -31,10 +35,12 @@ SOFTWARE.
 
 """
 
+SIG_FILE = '/yara/crypto_signatures.yar'
+
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import Qt
 from binaryninja import *
-from defunct import BinjaWidget
+from defunct.widgets import BinjaWidget
 import defunct.widgets
 
 import yara
@@ -46,7 +52,7 @@ class YaraWidget(BinjaWidget):
     def __init__(self):
 
         super(YaraWidget, self).__init__('Yara')
-        self._rules = yara.compile(filepath=core.BNGetUserPluginDirectory() + '/yara/crypto_signatures.yar')
+        self._rules = yara.compile(filepath=core.BNGetUserPluginDirectory() + SIG_FILE)
         self._table = QtWidgets.QTableWidget()
         self._table.setColumnCount(2)
         self._table.setHorizontalHeaderLabels(['Offset', 'Signature'])
